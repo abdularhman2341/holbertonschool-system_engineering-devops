@@ -1,0 +1,42 @@
+https://i.imgur.com/EWM5RQR.png
+
+Distributed web infrastructure (three servers) for www.foobar.com
+
+Flow:
+The user's browser resolves www.foobar.com through the DNS; the www A
+record points to the load balancer's IP. HAProxy receives the request and
+forwards it to one of the two servers. Each server runs Nginx, an
+application server, the code base and MySQL. Writes go to the Primary
+database on server 1, which replicates them to the Replica on server 2.
+
+Why each new element:
+- Load balancer (HAProxy): spreads traffic across the servers and stops
+  sending requests to a server that is down.
+- Second server: shares the load and provides redundancy.
+- MySQL Replica: offloads read queries and keeps a copy of the data.
+
+Load balancer algorithm:
+Round Robin - requests are sent to each server in turn (1, 2, 1, 2...),
+so the load is shared evenly.
+
+Active-Active vs Active-Passive:
+This setup is Active-Active: both servers serve traffic at the same time.
+In Active-Passive, only one node serves traffic and the other stays on
+standby, taking over only if the active one fails.
+
+Primary-Replica (Master-Slave) cluster:
+The Primary records every change in its binary log. The Replica reads
+that log and applies the same changes, keeping a near real-time copy.
+
+Primary vs Replica for the application:
+The application sends all writes (INSERT, UPDATE, DELETE) to the Primary.
+Reads can go to either node. The Replica is read-only.
+
+Issues:
+- SPOF: the single load balancer and the single Primary database. If the
+  load balancer fails the site is unreachable; if the Primary fails no
+  writes are possible.
+- Security issues: no firewall, so every port is exposed; no HTTPS, so
+  traffic travels in clear text and can be read or modified.
+- No monitoring: no way to know when a server is down, overloaded or out
+  of disk space until users notice.
