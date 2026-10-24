@@ -1,0 +1,33 @@
+https://i.imgur.com/l0h7uIS.png
+
+Scale up - www.foobar.com
+
+Flow:
+The user resolves www.foobar.com through the DNS; the A record points to
+the virtual IP of the load balancer cluster. The active HAProxy forwards
+the request to the web server (Nginx), which serves static content and
+passes dynamic requests to the application server. The application
+server runs the code base and queries the MySQL database server.
+
+Why each new element:
+- 1 additional server: gives enough machines to put every component on
+  its own server.
+- Second HAProxy load balancer configured as a cluster with the first
+  one: removes the load balancer SPOF. Both share a virtual IP; if the
+  active one fails, the other takes over automatically.
+- Web server on its own server: handles HTTP and static content only,
+  so it is fast and can be scaled independently.
+- Application server on its own server: runs the business logic with
+  dedicated CPU and memory, without competing with the database.
+- Database on its own server: gets dedicated memory and disk I/O, and
+  can be protected so that only the application server can reach it.
+
+Splitting the components means they no longer compete for the same
+resources, each layer can be scaled according to its own load, and a
+problem in one layer does not take the others down.
+
+Application server vs web server:
+- Web server: handles HTTP requests and serves static content (HTML,
+  CSS, images).
+- Application server: runs the application code and generates dynamic
+  content, often using data from the database.
