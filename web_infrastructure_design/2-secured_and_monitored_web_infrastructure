@@ -1,0 +1,53 @@
+https://i.imgur.com/1SivmY3.png
+
+Secured and monitored web infrastructure for www.foobar.com
+
+Flow:
+The user resolves www.foobar.com through the DNS (A record -> load
+balancer IP) and connects over HTTPS on port 443. Firewall 1 lets the
+traffic reach HAProxy, which holds the SSL certificate, decrypts the
+request and forwards it to server 1 or server 2. Each server is protected
+by its own firewall. A monitoring client on every server sends logs and
+metrics to a monitoring service.
+
+Why each new element:
+- 3 firewalls (one per server): only allow the needed traffic (443 on the
+  load balancer, load balancer traffic only on the web servers) and block
+  everything else.
+- 1 SSL certificate: serves www.foobar.com over HTTPS so traffic between
+  the user and the load balancer is encrypted.
+- 3 monitoring clients: collect logs and metrics on each server and send
+  them to the monitoring service (e.g. Sumo Logic).
+
+What firewalls are for:
+A firewall filters incoming and outgoing traffic based on rules (IP,
+port, protocol), reducing the attack surface.
+
+Why HTTPS:
+HTTPS encrypts data (passwords, cookies) so it cannot be read or modified
+in transit, and the certificate proves to the user that the site is the
+real www.foobar.com.
+
+What monitoring is used for:
+To know the health and performance of the system (uptime, load, errors,
+resources) and to get alerts before users notice a problem.
+
+How the monitoring tool collects data:
+An agent installed on each server reads the log files and measures system
+metrics (CPU, memory, disk, network), then sends them to the monitoring
+service where they are stored, graphed and used for alerts.
+
+Monitoring the web server QPS:
+Enable Nginx's stub_status page (or parse the access log). The monitoring
+client reads the request counter at regular intervals and computes the
+queries per second, which is shown on a dashboard with an alert threshold.
+
+Issues:
+- SSL termination at the load balancer: traffic between the load balancer
+  and the servers travels unencrypted (HTTP) inside the network, so
+  anyone who gets into the internal network can read it.
+- Only one MySQL server accepting writes: if the Primary fails no writes
+  are possible, and all writes are limited to one machine.
+- Servers with all the same components: database, web and application
+  servers compete for the same CPU and memory, cannot be scaled
+  separately, and one failing server takes several layers down at once.
