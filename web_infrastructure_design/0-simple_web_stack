@@ -1,0 +1,31 @@
+https://i.imgur.com/kf06YcB.png
+
+Simple web stack (one server) for www.foobar.com
+
+Flow:
+A user types www.foobar.com in the browser. The browser asks the DNS for
+the IP of www.foobar.com. The www record is an A record pointing to
+8.8.8.8. The browser opens a TCP/IP connection to 8.8.8.8 on port 80 and
+sends an HTTP request. Nginx receives it, serves static files directly and
+forwards dynamic requests to the application server, which runs the code
+base and queries MySQL. The generated page goes back to the user via Nginx.
+
+Components:
+- Server: a physical or virtual machine that runs programs and provides
+  services to other computers over a network.
+- Domain name: a human-readable alias (foobar.com) for an IP address,
+  resolved by the DNS.
+- DNS record type of www: an A record (maps a hostname to an IPv4 address).
+- Web server (Nginx): accepts HTTP requests, serves static content and
+  forwards dynamic requests to the application server.
+- Application server: executes the code base (business logic) and
+  generates dynamic content.
+- Database (MySQL): stores and retrieves the application's data.
+- Communication with the user: TCP/IP over the Internet, using HTTP.
+
+Issues:
+- SPOF: a single server; if it goes down, the whole website is down.
+- Downtime during maintenance: deploying new code or restarting the web
+  server makes the site unavailable.
+- Cannot scale: one server cannot handle a large traffic increase; there
+  is nowhere to distribute the load.
